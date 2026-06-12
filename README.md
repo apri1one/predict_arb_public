@@ -40,6 +40,8 @@ NO 端套利 (arbSide='NO'):
 ```bash
 npm install
 
+# Python 依赖（用于 Polymarket 配置自动派生）
+pip install -r tools/requirements.txt
 ```
 
 ### 2. 配置环境变量
@@ -48,13 +50,23 @@ npm install
 cp .env.example .env
 ```
 
-然后编辑 `.env` 填写各项配置，详见下方说明。
+`.env` 只需填 **4 个值**，其余留空即可：
+
+```env
+PREDICT_API_KEY=                  # predict.fun/settings/api 创建
+PREDICT_SIGNER_PRIVATE_KEY=       # Privy 嵌入式钱包私钥
+PREDICT_SMART_WALLET_ADDRESS=     # Predict 充值地址
+POLYMARKET_TRADER_PRIVATE_KEY=    # Polymarket 交易钱包私钥
+```
+
+Polymarket 的代理地址与 L2 API 凭证**无需手动配置**——启动时自动从私钥派生并写回 `.env`。
 
 ### 3. 运行
 
 ```bash
 # Web Dashboard（默认端口 3010）
-npm run dashboard
+npm run dashboard -- --use-cache   # 推荐: 使用市场缓存秒级启动
+npm run dashboard                  # 首次运行 / 强制刷新市场列表（全量扫描约 4 分钟）
 ```
 
 ---
@@ -93,65 +105,17 @@ POLYMARKET_PASSPHRASE=<L2 API Passphrase>
 
 | 变量 | 说明 |
 |-----|------|
-| `POLYMARKET_TRADER_PRIVATE_KEY` | 你在 Polymarket 上使用的 EOA 钱包私钥，用于签署订单和派生 API 凭证 |
-| `POLYMARKET_PROXY_ADDRESS` | Polymarket 的 Gnosis Safe 代理钱包地址，实际持有资金的地址 |
-| `POLYMARKET_API_KEY` | CLOB API 凭证，通过私钥派生获取（见下方） |
-| `POLYMARKET_API_SECRET` | CLOB API 凭证 |
-| `POLYMARKET_PASSPHRASE` | CLOB API 凭证 |
-| `POLY_BUILDER_CODE` | 可选，Polymarket CLOB V2 builder attribution bytes32；不填则按 0x00 提交 |
+| `POLYMARKET_TRADER_PRIVATE_KEY` | 你在 Polymarket 上使用的 EOA 钱包私钥，用于签署订单和派生 API 凭证（**唯一必填项**） |
+| `POLYMARKET_PROXY_ADDRESS` | Gnosis Safe 代理钱包地址（资金所在）。留空自动派生 |
+| `POLYMARKET_API_KEY` / `API_SECRET` / `PASSPHRASE` | CLOB L2 API 凭证（EIP-712 签名从私钥确定性派生，非网站创建）。留空自动派生 |
 
-### Polymarket API Key 生成方法
+**自动派生**: 启动 dashboard 时检测到上述留空项，会自动调用 `tools/get-pm-apikey.py` 从私钥派生全部配置并写回 `.env`（需 `pip install -r tools/requirements.txt`）。
 
-Polymarket 的 API Key / Secret / Passphrase 是通过 EIP-712 签名从你的交易私钥派生的，不是在网站上手动创建。
-
-**方法一: Python 脚本（推荐，一键完成全部配置）**
+也可手动运行（如需在启动前单独生成）:
 
 ```bash
-# 安装依赖
-pip install py-clob-client-v2 eth-account eth-utils requests
-
-# 运行（交互式输入私钥，自动派生 API 凭证 + 查询代理钱包地址 + 写入 .env）
-python tools/get-pm-apikey.py
-
-# 或直接传入私钥
-python tools/get-pm-apikey.py 0x你的私钥
-
-# 仅查看结果不写入
-python tools/get-pm-apikey.py --dry-run 0x你的私钥
-```
-
-此脚本会自动完成:
-1. 从私钥派生 EOA 地址
-2. 通过 CLOB API 派生 API Key / Secret / Passphrase
-3. 通过 Gnosis Safe API 查询代理钱包地址
-4. 将所有配置写入 `.env` 文件
-
-**方法二: TypeScript 脚本**
-
-```bash
-# 先在 .env 中填好 POLYMARKET_TRADER_PRIVATE_KEY
-npx tsx src/terminal/derive-poly-apikey.ts
-
-# 强制创建新 Key（会删除旧 Key）
-npx tsx src/terminal/derive-poly-apikey.ts --new
-```
-
-**方法三: 使用 py-clob-client-v2 手动派生**
-
-```python
-from py_clob_client.client import ClobClient
-
-client = ClobClient(
-    host="https://clob.polymarket.com",
-    chain=137,
-    key="0x你的私钥",
-    signature_type=0,  # EOA
-    funder="你的EOA地址",
-)
-creds = client.create_or_derive_api_creds()
-print(f"API Key:    {creds.api_key}")
-print(f"Secret:     {creds.api_secret}")
-print(f"Passphrase: {creds.api_passphrase}")
+python tools/get-pm-apikey.py               # 交互式输入私钥, 派生后写入 .env
+python tools/get-pm-apikey.py --dry-run 0x你的私钥   # 仅查看结果不写入
 ```
 
 ### Telegram 配置（可选）
@@ -167,10 +131,11 @@ TELEGRAM_CHAT_ID=<接收通知的 Chat ID>
 
 ```bash
 # Dashboard
-npm run dashboard                # 启动 (默认端口 3010)
+npm run dashboard -- --use-cache # 启动 (默认端口 3010, 用市场缓存秒级启动)
+npm run dashboard                # 启动并刷新市场列表 (全量扫描)
 
 # 市场扫描
-npm run scan-markets             # 全量市场扫描
+npm run scan-markets             # 全量市场扫描 (status=OPEN 前置过滤, 约 4 分钟)
 
 # 类型检查
 npx tsc --noEmit
