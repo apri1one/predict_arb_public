@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "dashboard",
+      "cwd": "E:/predict-engine",
+      "script": "scripts/pm2-dashboard-runner.cjs",
+      "interpreter": "node",
+      "autorestart": true,
+      "watch": false,
+      "env": {
+        "DASHBOARD_PORT": "3020"
+      }
+    }
+  ]
+}

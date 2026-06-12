@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArbScanner Pro | Complete Preview</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist', 'Inter', 'sans-serif'],
+                        display: ['Geist', 'Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        background: "#EFE9DF",
+                        surface: "#F5F1EB",
+                        card: "rgba(255, 255, 255, 0.55)",
+                        foreground: "#1A1915",
+                        muted: "#6B665C",
+                        accent: {
+                            DEFAULT: "#D97757",
+                            glow: "rgba(217, 119, 87, 0.35)",
+                            dim: "rgba(217, 119, 87, 0.10)",
+                        },
+                        border: "rgba(0, 0, 0, 0.06)",
+                        borderHover: "rgba(0, 0, 0, 0.12)",
+                    },
+                    boxShadow: {
+                        'glow-sm': '0 4px 16px rgba(217, 119, 87, 0.10)',
+                        'glow-md': '0 8px 32px rgba(217, 119, 87, 0.15)',
+                        'glow-button': '0 4px 16px rgba(217, 119, 87, 0.30)',
+                        'frost-sm': '0 1px 4px rgba(60, 50, 40, 0.04), 0 4px 16px rgba(60, 50, 40, 0.06)',
+                        'frost-md': '0 4px 12px rgba(60, 50, 40, 0.05), 0 12px 32px rgba(60, 50, 40, 0.08)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'tab-in': 'tabIn 0.25s ease-out',
+                    },
+                    keyframes: {
+                        tabIn: {
+                            '0%': { opacity: '0', transform: 'translateY(6px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="./preview/preview.css">
+</head>
+
+<body>
+    <div id="root"></div>
+    <div class="bg-noise"></div>
+    <div class="ambient-orb w-[700px] h-[700px] bg-[#D97757] top-[-350px] left-[5%] opacity-[0.18]"></div>
+    <div class="ambient-orb w-[600px] h-[600px] bg-[#5C3B1E] bottom-[-250px] right-[-120px] opacity-[0.10]"></div>
+    <div class="ambient-orb w-[500px] h-[500px] bg-[#E89678] top-[40%] right-[10%] opacity-[0.08]"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="./preview/runtime.js"></script>
+    <script type="text/babel" src="./preview/icons.jsx"></script>
+    <script type="text/babel" src="./preview/notifications.jsx"></script>
+    <script type="text/babel" src="./preview/opportunity-map.js"></script>
+    <script type="text/babel" src="./preview/sse.js"></script>
+    <script type="text/babel" src="./preview/mock-data.js"></script>
+    <script type="text/babel" src="./preview/components.jsx"></script>
+    <script type="text/babel" src="./preview/hedge-tab.jsx"></script>
+    <script type="text/babel" src="./preview/app.jsx"></script>
+</body>
+
+</html>

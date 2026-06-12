@@ -1,0 +1,168 @@
+# External SDK (separate git repo)
+sdk/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.js.map
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Runtime DB
+data/task-logs.db
+data/poly-multi.db
+data/poly-multi.db-*
+
+# Logs
+*.log
+*.log.jsonl
+*.out
+npm-debug.log*
+yarn-debug.log*
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*.pid
+*.pyc
+*.bak
+*.bak-*
+*.orig
+tmp_*.json
+.cache/
+__pycache__/
+
+# Local agent/editor state
+.claude/
+
+# Beads runtime state
+.beads/
+
+# Local artifacts and debug outputs
+artifacts/
+bot/artifacts/
+
+# Local ad-hoc scripts
+bot/src/testing/local/
+
+# Bot runtime state (local)
+bot/data/tasks.json
+bot/data/task-logs.db
+bot/data/logs/
+bot/data/*-slugs.json
+bot/polymarket-match-result.json
+
+# Root runtime data (tasks, logs)
+data/
+data/logs/
+data/tasks.json
+data/*-slugs.json
+
+# Preview scratch files
+front/preview/*.txt
+
+# Local vendor drops
+polymarket-sdk-master/
+nul
+
+# MCP config (local)
+.mcp.json
+
+# Runtime cache
+data/sports-match-cache.json
+
+# Screenshots
+截图*
+
+# Electron client (contains hardcoded infra addresses)
+client/
+
+# License server
+license-server/
+
+# Temporary debug files
+tmp-*
+tmp/
+tmp_health_check.py
+
+# Internal operational notes
+docs/prompts/
+scripts/scheduled-v2-restart.sh
+
+# Runtime data / config snapshots
+market-maker-last-config.json
+points-engine.config.json
+polymarket-match-result.json
+*-match-result.json
+docker-compose.yml
+pm2.config.cjs
+
+# Platform icons (Opinion/Probable)
+opinion_icon.jpg
+probable_icon.png
+
+# Deploy scripts (personal server config)
+deploy/
+
+# Obsolete patches
+patches/
+
+# Internal planning docs
+docs/notes/
+docs/plans/IMPLEMENTATION_PLAN.md
+docs/plans/POINTS_ENGINE_MVP_PLAN.md
+docs/MARKET_MAKER.md
+docs/MARKET_MAKER_MODULE.md
+docs/PRD.md
+
+# Testing files
+src/testing/*
+!src/testing/test-poly-maker-*.ts
+src/terminal/test-*.ts
+src/market-maker/test-*.ts
+src/arb/test-*.ts
+src/polymarket/test-*.ts
+src/predict/test-*.ts
+src/dashboard/frontend/test-*.html
+scripts/api-test/
+docs/API_TESTING.md
+license-server/test.sh
+test-*.cjs
+test-output.txt
+tmp-node-test.txt
+.omx/
+
+# Sensitive docs (kept locally, not tracked)
+docs/FRONTEND_USER_GUIDE.md
+计划文档.md
+
+# Accidentally committed files, now untracked (kept locally)
+docs/plans/2026-05-10-auto-close-pp-plan.md
+docs/NEWBIE_DEPLOY_GUIDE.md
+tools/watch-first-hedge.sh
+
+# Ad-hoc scratch dir
+tmp/

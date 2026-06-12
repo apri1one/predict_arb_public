@@ -1,0 +1,15 @@
+node_modules/
+dist/
+client/
+license-server/
+sdk/
+.git/
+.claude/
+.env
+.env.*
+*.log
+*.md
+coverage/
+artifacts/
+截图*
+predict_400x400.jpg

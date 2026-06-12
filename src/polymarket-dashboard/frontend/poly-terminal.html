@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket Sports Terminal</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        background: "#000000",
+                        surface: "#0A0A0F",
+                        card: "rgba(20, 20, 25, 0.6)",
+                        foreground: "#FAFAFA",
+                        muted: "#71717A",
+                        accent: {
+                            DEFAULT: "#F59E0B",
+                            glow: "rgba(245, 158, 11, 0.4)",
+                            dim: "rgba(245, 158, 11, 0.1)",
+                        },
+                        border: "rgba(255, 255, 255, 0.05)",
+                        borderHover: "rgba(255, 255, 255, 0.12)",
+                    },
+                    boxShadow: {
+                        'glow-sm': '0 0 20px rgba(245, 158, 11, 0.15)',
+                        'glow-md': '0 0 40px rgba(245, 158, 11, 0.2)',
+                        'glow-button': '0 0 20px rgba(245, 158, 11, 0.4)',
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="./preview/poly-terminal.css">
+</head>
+
+<body>
+    <div id="root"></div>
+    <div class="bg-noise"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="./preview/runtime.js"></script>
+    <script type="text/babel" src="./preview/icons.jsx"></script>
+    <script type="text/babel" src="./preview/notifications.jsx"></script>
+    <script type="text/babel" src="./preview/sse.js"></script>
+    <script type="text/babel" src="./preview/sports-card.jsx"></script>
+    <script type="text/babel" src="./preview/app.jsx"></script>
+</body>
+
+</html>

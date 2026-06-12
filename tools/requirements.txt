@@ -1,0 +1,13 @@
+# Python 依赖 — tools/ 下的 Polymarket 配置脚本
+# 安装: pip install -r tools/requirements.txt
+#
+# 注意: 包名是 py-clob-client (v1, 提供 py_clob_client 模块)。
+# 不要装 py-clob-client-v2 — 那个包的模块名是 py_clob_client_v2,
+# 与脚本的 import 不匹配 (已踩坑: 装了 v2 后 import 仍然失败)。
+eth-account>=0.13.0
+eth-utils>=4.1.1
+requests>=2.31.0
+py-clob-client>=0.34.0
+# httpx 的 SOCKS 代理支持: 环境变量 ALL_PROXY=socks5://... (Clash) 存在时,
+# py_clob_client 内部的 httpx.Client 缺少 socksio 会在 import 阶段直接崩溃
+httpx[socks]>=0.27.0

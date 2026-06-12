@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Ribbon Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #09090b;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .glass-card {
+            background: rgba(24, 24, 27, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        /* 斜角标签样式 - 方案 A: 经典丝带 */
+        .ribbon-a {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .ribbon-a span {
+            position: absolute;
+            display: block;
+            width: 120px;
+            padding: 4px 0;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transform: rotate(-45deg);
+            top: 18px;
+            left: -30px;
+        }
+        .ribbon-buy span {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        .ribbon-close span {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        /* 方案 B: 小角标 */
+        .corner-tag {
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 40px 40px 0 0;
+        }
+        .corner-tag.buy {
+            border-color: #10b981 transparent transparent transparent;
+        }
+        .corner-tag.close {
+            border-color: #f59e0b transparent transparent transparent;
+        }
+        .corner-tag span {
+            position: absolute;
+            top: -36px;
+            left: 3px;
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+            transform: rotate(-45deg);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* 方案 C: 紧凑丝带 */
+        .ribbon-c {
+            position: absolute;
+            top: 8px;
+            left: -28px;
+            transform: rotate(-45deg);
+            padding: 2px 30px;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ribbon-c.buy {
+            background: #10b981;
+            color: white;
+        }
+        .ribbon-c.close {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <h1 class="text-white text-2xl mb-8 font-semibold">任务标签预览 - 3种方案</h1>
+
+    <div class="grid grid-cols-3 gap-8 mb-12">
+        <!-- 方案 A: 经典丝带 -->
+        <div>
+            <h2 class="text-zinc-400 text-sm mb-4">方案 A: 经典丝带</h2>
+            <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden">
+                <div class="ribbon-a ribbon-buy">
+                    <span>BUY</span>
+                </div>
+                <div class="pl-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">MAKER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">YES→NO</span>
+                    </div>
+                    <h3 class="text-white text-sm mb-2 line-clamp-2">Will the Buffalo Bills win Super Bowl 2026?</h3>
+                    <div class="text-emerald-400 text-lg font-semibold">+$2.45 <span class="text-xs opacity-70">(1.8%)</span></div>
+                </div>
+            </div>
+
+            <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden mt-4">
+                <div class="ribbon-a ribbon-close">
+                    <span>CLOSE</span>
+                </div>
+                <div class="pl-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">TAKER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">NO→YES</span>
+                    </div>
+                    <h3 class="text-white text-sm mb-2 line-clamp-2">2026 NBA Champion - Denver Nuggets</h3>
+                    <div class="text-emerald-400 text-lg font-semibold">+$1.20 <span class="text-xs opacity-70">(2.1%)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案 B: 小角标 -->
+        <div>
+            <h2 class="text-zinc-400 text-sm mb-4">方案 B: 小角标</h2>
+            <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden">
+                <div class="corner-tag buy">
+                    <span>BUY</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">MAKER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">YES→NO</span>
+                    </div>
+                    <h3 class="text-white text-sm mb-2 line-clamp-2">Will the Buffalo Bills win Super Bowl 2026?</h3>
+                    <div class="text-emerald-400 text-lg font-semibold">+$2.45 <span class="text-xs opacity-70">(1.8%)</span></div>
+                </div>
+            </div>
+
+            <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden mt-4">
+                <div class="corner-tag close">
+                    <span>CLOSE</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">TAKER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">NO→YES</span>
+                    </div>
+                    <h3 class="text-white text-sm mb-2 line-clamp-2">2026 NBA Champion - Denver Nuggets</h3>
+                    <div class="text-emerald-400 text-lg font-semibold">+$1.20 <span class="text-xs opacity-70">(2.1%)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案 C: 紧凑丝带 -->
+        <div>
+            <h2 class="text-zinc-400 text-sm mb-4">方案 C: 紧凑丝带</h2>
+            <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden">
+                <div class="ribbon-c buy">BUY</div>
+                <div class="pl-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">MAKER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">YES→NO</span>
+                    </div>
+                    <h3 class="text-white text-sm mb-2 line-clamp-2">Will the Buffalo Bills win Super Bowl 2026?</h3>
+                    <div class="text-emerald-400 text-lg font-semibold">+$2.45 <span class="text-xs opacity-70">(1.8%)</span></div>
+                </div>
+            </div>
+
+            <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden mt-4">
+                <div class="ribbon-c close">CLOSE</div>
+                <div class="pl-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">TAKER</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">NO→YES</span>
+                    </div>
+                    <h3 class="text-white text-sm mb-2 line-clamp-2">2026 NBA Champion - Denver Nuggets</h3>
+                    <div class="text-emerald-400 text-lg font-semibold">+$1.20 <span class="text-xs opacity-70">(2.1%)</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 无任务对比 -->
+    <h2 class="text-zinc-400 text-sm mb-4">无任务的卡片 (对比)</h2>
+    <div class="w-1/3">
+        <div class="relative glass-card rounded-xl border border-zinc-800/50 p-5 overflow-hidden">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">MAKER</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30">YES→NO</span>
+                </div>
+                <h3 class="text-white text-sm mb-2 line-clamp-2">Will Gold be above $4,400 on January 30th, 2026?</h3>
+                <div class="text-emerald-400 text-lg font-semibold">+$3.12 <span class="text-xs opacity-70">(2.5%)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 p-4 rounded-lg bg-zinc-900 border border-zinc-800">
+        <h3 class="text-white text-sm font-medium mb-2">说明</h3>
+        <ul class="text-zinc-400 text-xs space-y-1">
+            <li>• <span class="text-emerald-400">BUY</span> - 买入任务 (开仓)</li>
+            <li>• <span class="text-amber-400">CLOSE</span> - 平仓任务</li>
+            <li>• 方案 A: 经典丝带，醒目但占用空间较大</li>
+            <li>• 方案 B: 小角标，简洁紧凑</li>
+            <li>• 方案 C: 紧凑丝带，介于 A 和 B 之间</li>
+        </ul>
+    </div>
+</body>
+</html>

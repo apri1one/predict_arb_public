@@ -1,0 +1,60 @@
+{
+    "name": "@predict-tradingbot/bot",
+    "version": "0.1.0",
+    "description": "Predict-Polymarket arbitrage trading bot",
+    "type": "module",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsx watch src/index.ts",
+        "dashboard": "tsx src/dashboard/start-dashboard.ts",
+        "dashboard:all": "tsx src/dashboard/start-all.ts",
+        "dashboard:demo": "tsx src/dashboard/server.ts",
+        "orderbook": "tsx src/terminal/orderbook.ts",
+        "arb-monitor": "tsx src/terminal/arb-monitor.ts",
+        "monitor:predict-pending": "tsx src/terminal/monitor-predict-pending-latency.ts",
+        "report:hedge-timing": "tsx src/terminal/hedge-timing-report.ts",
+        "scan-markets": "tsx src/terminal/scan-all-markets.ts",
+        "mm": "tsx src/market-maker/cli.tsx",
+        "market-maker": "tsx src/market-maker/cli.tsx",
+        "market-maker:scalp": "cross-env MM_STRATEGY=SCALP tsx src/market-maker/cli.tsx",
+        "test:polymarket": "tsx src/polymarket/test-polymarket.ts",
+        "test:predict": "tsx src/predict/test-predict.ts",
+        "test:probable-match": "tsx src/terminal/test-probable-polymarket-match.ts",
+        "test:strategy": "tsx src/arb/test-strategy.ts",
+        "test:all": "npm run test:polymarket && npm run test:predict && npm run test:strategy",
+        "poly-dashboard": "tsx src/polymarket-dashboard/start-poly-dashboard.ts",
+        "lint": "eslint src --ext .ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@polymarket/builder-relayer-client": "^0.0.8",
+        "@polymarket/builder-signing-sdk": "^1.0.0",
+        "@polymarket/clob-client-v2": "^1.0.6",
+        "@predictdotfun/sdk": "^1.2.4",
+        "@types/better-sqlite3": "^7.6.13",
+        "@zerodev/ecdsa-validator": "^5.4.9",
+        "@zerodev/sdk": "^5.5.7",
+        "better-sqlite3": "^12.5.0",
+        "dotenv": "^17.2.3",
+        "ethers": "^6.9.0",
+        "ethers5": "npm:ethers@^5.8.0",
+        "ink": "^4.2.0",
+        "node-telegram-bot-api": "^0.67.0",
+        "permissionless": "^0.3.4",
+        "react": "^18.2.0",
+        "ws": "^8.14.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "@types/node-telegram-bot-api": "^0.64.13",
+        "@types/react": "^18.3.11",
+        "@types/ws": "^8.5.10",
+        "cross-env": "^10.1.0",
+        "tsx": "^4.6.0",
+        "typescript": "^5.3.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
