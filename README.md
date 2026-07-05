@@ -1,203 +1,169 @@
-# Predict-Polymarket 套利交易机器人
+# Predict.fun × Polymarket Cross-Platform Arbitrage Bot
 
-Predict.fun 与 Polymarket 跨平台套利交易机器人。实时监控双平台订单簿，自动识别并执行套利机会。
+A real-money trading system for prediction markets, built and operated by a solo market maker. It monitors orderbooks on **Predict.fun** and **Polymarket** in real time, detects cross-platform arbitrage opportunities, and executes both legs automatically.
 
----
+![TypeScript](https://img.shields.io/badge/TypeScript-ESM-blue)
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## 核心功能
-
-- **Web Dashboard**: 实时套利面板，一键下单、任务管理、持仓监控
-- **跨平台市场匹配**: 自动识别 Predict ↔ Polymarket 关联市场（含体育三方事件）
-- **深度感知计算**: 订单簿深度分析，精确计算可执行数量与利润
-- **双策略执行**: PREDICT_MAKER（挂单等待 + 对冲）与 TAKER（双边同时吃单）
-- **Telegram 通知**: 实时套利机会、成交、对冲状态推送
+> **Production, not a demo.** This is a public snapshot of a system that has been trading real capital since April 2026, running 24/7 across multiple cloud servers. The hard-won operational knowledge is documented in [Lessons from Production](#lessons-from-production) below.
+>
+> 中文版说明见 [README.zh.md](README.zh.md)
 
 ---
 
-## 套利原理
+## Highlights
+
+- **Web dashboard** — live arbitrage panel with one-click execution, task management, position monitoring (Server-Sent Events, no polling)
+- **Cross-platform market matching** — automatically links Predict ↔ Polymarket markets, including three-way sports events (win/draw/lose decomposition)
+- **Depth-aware sizing** — walks both orderbooks to compute the exact executable quantity and profit, instead of trusting top-of-book prices
+- **Two execution strategies** — `PREDICT_MAKER` (post a maker order, hedge on fill) and `TAKER` (hit both sides simultaneously)
+- **Phantom-depth detection** — identifies stale/fake Polymarket depth before it turns into slippage (see lessons below)
+- **GTC fallback hedging** — if the primary hedge fails, an escalation chain (re-priced IOC → break-even GTC) prevents naked exposure
+- **On-chain fill detection** — listens to BSC events for order fills rather than polling REST
+- **Telegram notifications** — opportunities, fills, hedge status, and anomaly alerts in real time
+
+## The Arbitrage Model
+
+Prediction market shares resolve to $1 or $0. If YES on one platform plus NO on the other costs less than $1 combined, the difference is locked-in profit regardless of outcome:
 
 ```
-YES 端套利 (arbSide='YES'):
-  Predict 买 YES + Polymarket 买 NO = 锁定利润
-  条件: predict_ask + polymarket_ask + fee < 1.0
+YES-side arb (arbSide='YES'):
+  Buy YES on Predict + Buy NO on Polymarket
+  Condition: predict_ask + polymarket_ask + fees < 1.0
 
-NO 端套利 (arbSide='NO'):
-  Predict 买 NO + Polymarket 买 YES = 锁定利润
-  条件: predict_ask + polymarket_ask + fee < 1.0
+NO-side arb (arbSide='NO'):
+  Buy NO on Predict + Buy YES on Polymarket
+  Condition: predict_ask + polymarket_ask + fees < 1.0
 ```
 
-| 策略 | 说明 | 优势 |
-|-----|------|------|
-| PREDICT_MAKER | 在 Predict 挂单，成交后 Polymarket 对冲 | 无 Maker 手续费，利润更高 |
-| TAKER | 双边同时吃单 | 执行速度快，滑点可控 |
+| Strategy | How it works | Edge |
+|----------|--------------|------|
+| `PREDICT_MAKER` | Post a GTC maker order on Predict; hedge on Polymarket the moment it fills | No maker fee → wider margin |
+| `TAKER` | Take liquidity on both platforms simultaneously | Speed; slippage is bounded upfront |
 
----
+The hard part is not the math — it is everything that happens between "the numbers said yes" and "both legs are actually filled". That gap is where the engineering below lives.
 
-## 快速开始
+## Architecture
 
-### 1. 安装依赖
+```
+src/
+├── arb/                   # Arbitrage detection engine
+├── dashboard/             # Dashboard backend + React frontend (SSE push)
+│   ├── frontend/preview/  #   Build-free vanilla JSX frontend
+│   ├── taker-mode/        #   TAKER dual-leg simultaneous executor
+│   └── task-logger/       #   Async queue, JSONL persistence, notifications
+├── market-maker/          # Market-making engine (Ink.js CLI)
+├── polymarket/            # Polymarket CLOB REST + WebSocket clients
+├── predict/               # Predict.fun REST client
+├── polymarket-dashboard/  # Standalone Polymarket sports dashboard
+├── probable/              # Probable Markets REST client (third platform)
+├── services/              # BSC on-chain monitoring, WS health, caches
+├── trading/               # Price utils, depth calculation, order clients
+├── notification/          # Telegram notifications
+├── terminal/              # CLI tools (scanners, orderbook viewer)
+└── config/                # Static config (BSC RPC failover list)
+tools/                     # Wallet / API-key derivation & smoke tests
+scripts/                   # Ops scripts (PM2 runner, metrics reports)
+docs/                      # Architecture & design docs
+```
+
+Key data flow: market scanners build the cross-platform mapping → WebSocket subscriptions keep both orderbooks hot in memory → the arb engine re-evaluates on every tick → execution tasks run through a state machine with per-task JSONL audit logs → BSC event listeners confirm fills on-chain.
+
+## Lessons from Production
+
+Everything below was learned the expensive way — by running this system (and its private market-making successor) on real money. Each item shipped with an automated fix, not just a note in a doc.
+
+**1. "MATCHED" does not mean filled.**
+Polymarket's order API can return `status=MATCHED` with `size_matched=0` in the same response. Three distinct causes: (a) API replication lag — a short retry loop resolves it; (b) negRisk self-trade rollback; (c) genuine zero fill because the cached ask was consumed in the matching instant ("phantom depth"). The fix: retry with backoff, then treat as cancelled — and continuously capture orderbook snapshots around the event for post-mortem forensics, because a single snapshot can never distinguish (a) from (c).
+
+**2. Exchanges invalidate orders asynchronously.**
+Predict force-cancels orders with a terminal status of `INVALIDATED` — not `CANCELLED`. Early code only recognized `CANCELLED`, misread invalidated orders as still open, and accumulated ghost orders in its books. Fix: treat all terminal states as terminal, run a global reconciliation loop, and re-place within a bounded window.
+
+**3. The deadliest state is "filled but unhedged".**
+When the maker leg fills and the hedge IOC returns zero fill, a naive implementation pauses and waits for the main loop to retry — but if no further ticks arrive, no code path ever wakes up, and you carry naked exposure until market resolution. Fix: the zero-fill branch immediately escalates through a fallback chain (re-priced IOC → break-even GTC) and alerts. Never rely on "the next tick will fix it" — in thin markets there may be no next tick.
+
+**4. Floating point will eat your margin.**
+`1.0 - 0.32 !== 0.68` in IEEE 754. Every price must pass through tick-aligned rounding; Predict additionally requires order amounts aligned to 1e13 wei-units (`amount % 1e13 === 0`). One unaligned digit → rejected order → missed hedge window.
+
+**5. Know which timestamp you are trading against.**
+Polymarket exposes a market-level `end_date_iso` (CLOB) and an event-level `endDate` (Gamma API) — for sports they can differ materially. Settling your risk model on the wrong one means your "2 hours to settlement" market actually resolves in 10 minutes.
+
+**6. negRisk markets need defense in depth.**
+Orders on negRisk (multi-outcome) markets sign differently. A wrong flag produces a signature that verifies locally and gets rejected (or worse, mis-executed) remotely. The system runs three layers: forced correction at market-scan time → a preflight check before every execution → an EIP-712 self-verification against the CLOB's reported negRisk flag.
+
+**7. Critical orders must not queue behind routine ones.**
+In the private market-making engine, exit (stop-loss) orders once shared a rate-limit FIFO with routine quote updates — an exit order sat in queue for 105 seconds while the market moved. Fix: a dedicated rate-limit lane for anything risk-reducing. Rate limiting is an architecture decision, not a wrapper.
+
+**8. Observability saves you; unrotated logs kill you.**
+Per-task JSONL audit trails, orderbook snapshot capture on anomalies, and grep-able trace markers through the full order lifecycle made most incidents diagnosable in minutes. The same logging once filled a server's root partition and took the whole box offline. Both halves of that sentence are the lesson.
+
+## Quick Start
+
+### 1. Install
 
 ```bash
 npm install
-
-# Python 依赖（用于 Polymarket 配置自动派生）
-pip install -r tools/requirements.txt
+pip install -r tools/requirements.txt   # for Polymarket credential auto-derivation
 ```
 
-### 2. 配置环境变量
+### 2. Configure
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` 只需填 **4 个值**，其余留空即可：
+Only **4 values** are required — everything else is auto-derived:
 
 ```env
-PREDICT_API_KEY=                  # predict.fun/settings/api 创建
-PREDICT_SIGNER_PRIVATE_KEY=       # Privy 嵌入式钱包私钥
-PREDICT_SMART_WALLET_ADDRESS=     # Predict 充值地址
-POLYMARKET_TRADER_PRIVATE_KEY=    # Polymarket 交易钱包私钥
+PREDICT_API_KEY=                  # create at predict.fun/settings/api
+PREDICT_SIGNER_PRIVATE_KEY=       # your Predict signer wallet key (see Predict docs: dev.predict.fun)
+PREDICT_SMART_WALLET_ADDRESS=     # your Predict deposit (smart wallet) address
+POLYMARKET_TRADER_PRIVATE_KEY=    # your Polymarket trading wallet key
 ```
 
-Polymarket 的代理地址与 L2 API 凭证**无需手动配置**——启动时自动从私钥派生并写回 `.env`。
-
-### 3. 运行
+On startup, the Polymarket proxy address and L2 API credentials (key/secret/passphrase) are automatically derived from the private key and written back to `.env` — no manual setup. To derive them separately:
 
 ```bash
-# Web Dashboard（默认端口 3010）
-npm run dashboard -- --use-cache   # 推荐: 使用市场缓存秒级启动
-npm run dashboard                  # 首次运行 / 强制刷新市场列表（全量扫描约 4 分钟）
+python tools/get-pm-apikey.py                      # interactive, writes to .env
+python tools/get-pm-apikey.py --dry-run 0x<key>    # preview only
 ```
 
----
-
-## 环境变量配置详解
-
-### Predict 配置
-
-```env
-PREDICT_API_KEY=<从 https://predict.fun/settings/api 获取>
-PREDICT_SIGNER_PRIVATE_KEY=<Privy 嵌入式钱包私钥>
-PREDICT_SMART_WALLET_ADDRESS=<Predict 充值地址>
-```
-
-**说明**:
-
-| 变量 | 来源 | 说明 |
-|-----|------|------|
-| `PREDICT_API_KEY` | [predict.fun/settings/api](https://predict.fun/settings/api) | 在 Predict 网站设置页面创建 |
-| `PREDICT_SIGNER_PRIVATE_KEY` | Privy 嵌入式钱包 | Privy 生成的 EOA 钱包私钥，用于 EIP-712 订单签名 (签名地址由私钥自动派生，无需单独配置) |
-| `PREDICT_SMART_WALLET_ADDRESS` | Predict 网站充值页面 | 这是你在 Predict 上的充值地址（智能合约钱包），USDT 余额存放于此 |
-
-> **如何获取 Privy 钱包信息**: 登录 predict.fun 后，在浏览器开发者工具的 Application → Local Storage 中可以找到 Privy 嵌入式钱包的地址和加密密钥信息。具体提取方式取决于 Privy 的版本和集成方式。
-
-### Polymarket 配置
-
-```env
-POLYMARKET_TRADER_PRIVATE_KEY=<交易钱包私钥>
-POLYMARKET_PROXY_ADDRESS=<代理钱包地址（资金所在）>
-POLYMARKET_API_KEY=<L2 API Key>
-POLYMARKET_API_SECRET=<L2 API Secret>
-POLYMARKET_PASSPHRASE=<L2 API Passphrase>
-```
-
-**说明**:
-
-| 变量 | 说明 |
-|-----|------|
-| `POLYMARKET_TRADER_PRIVATE_KEY` | 你在 Polymarket 上使用的 EOA 钱包私钥，用于签署订单和派生 API 凭证（**唯一必填项**） |
-| `POLYMARKET_PROXY_ADDRESS` | Gnosis Safe 代理钱包地址（资金所在）。留空自动派生 |
-| `POLYMARKET_API_KEY` / `API_SECRET` / `PASSPHRASE` | CLOB L2 API 凭证（EIP-712 签名从私钥确定性派生，非网站创建）。留空自动派生 |
-
-**自动派生**: 启动 dashboard 时检测到上述留空项，会自动调用 `tools/get-pm-apikey.py` 从私钥派生全部配置并写回 `.env`（需 `pip install -r tools/requirements.txt`）。
-
-也可手动运行（如需在启动前单独生成）:
+### 3. Run
 
 ```bash
-python tools/get-pm-apikey.py               # 交互式输入私钥, 派生后写入 .env
-python tools/get-pm-apikey.py --dry-run 0x你的私钥   # 仅查看结果不写入
+npm run dashboard -- --use-cache   # recommended: start in seconds using market cache
+npm run dashboard                  # first run / force market rescan (~4 min full scan)
 ```
 
-### Telegram 配置（可选）
-
-```env
-TELEGRAM_BOT_TOKEN=<BotFather 创建的 Bot Token>
-TELEGRAM_CHAT_ID=<接收通知的 Chat ID>
-```
-
----
-
-## 常用命令
+Other commands:
 
 ```bash
-# Dashboard
-npm run dashboard -- --use-cache # 启动 (默认端口 3010, 用市场缓存秒级启动)
-npm run dashboard                # 启动并刷新市场列表 (全量扫描)
-
-# 市场扫描
-npm run scan-markets             # 全量市场扫描 (status=OPEN 前置过滤, 约 4 分钟)
-
-# 类型检查
-npx tsc --noEmit
-
-# PM2 部署
-pm2 start ecosystem.config.cjs
-pm2 logs dashboard
+npm run scan-markets      # full market scan
+npx tsc --noEmit          # typecheck
+pm2 start ecosystem.config.cjs   # production deployment
 ```
 
----
+## Tech Stack
 
-## 项目结构
+- **Language**: TypeScript (ESM), Python for tooling
+- **Blockchain**: ethers.js v6 (BSC + Polygon), EIP-712 order signing, smart-wallet (Predict) + proxy-wallet (Polymarket) architectures
+- **APIs**: Predict.fun REST · Polymarket CLOB REST/WebSocket · Gamma API
+- **Frontend**: React (build-free vanilla JSX), Server-Sent Events
+- **Ops**: PM2, Docker, Telegram Bot API
 
-```
-predict_arb/
-├── src/
-│   ├── dashboard/             # Dashboard 后端 + React 前端
-│   │   ├── frontend/preview/  # 无构建 vanilla JSX 前端
-│   │   ├── taker-mode/        # TAKER 双边同时下单执行器
-│   │   └── task-logger/       # 异步队列、JSONL 持久化、通知集成
-│   ├── arb/                   # 套利检测引擎
-│   ├── trading/               # 价格工具、深度计算、下单客户端
-│   ├── config/                # 配置管理
-│   ├── services/              # BSC/WS 监控、缓存
-│   ├── polymarket/            # Polymarket REST + WS 客户端
-│   ├── predict/               # Predict REST 客户端
-│   ├── notification/          # Telegram 通知
-│   └── terminal/              # CLI 工具脚本
-├── tools/                     # 辅助工具 (API Key 派生等)
-├── data/                      # 运行时数据
-├── sdk/                       # Predict SDK (git 子模块)
-└── docs/                      # 架构文档
-```
+## Security Notes
 
----
+- Private keys live only in `.env` (gitignored); nothing is hardcoded
+- Task execution is guarded by depth monitoring and concurrency control
+- This public snapshot contains no keys, no server addresses, and no account data
 
-## 技术栈
+## Resources
 
-- **语言**: TypeScript (ESM)
-- **区块链**: ethers.js v6 (BSC + Polygon)
-- **API**: Predict.fun REST + Polymarket CLOB REST/WebSocket
-- **前端**: React (无构建 vanilla JSX)
-- **实时推送**: Server-Sent Events (SSE)
-- **通知**: Telegram Bot API
-- **部署**: PM2
-
----
-
-## 安全说明
-
-- 所有私钥存储在 `.env` 文件中，已添加到 `.gitignore`
-- API Key 使用环境变量，不硬编码
-- Dashboard 任务执行有深度监控与并发控制
-
----
-
-## 相关资源
-
-- [Predict API 文档](https://dev.predict.fun/)
+- [Predict API docs](https://dev.predict.fun/)
 - [Predict SDK](https://github.com/PredictDotFun/sdk)
-- [Polymarket API 文档](https://docs.polymarket.com/)
+- [Polymarket API docs](https://docs.polymarket.com/)
 
 ---
 
-**免责声明**: 本项目仅供学习和研究使用。交易有风险，投资需谨慎。使用本软件进行交易所产生的任何损失，开发者不承担责任。
+**Disclaimer**: This project is for research and educational purposes. Trading involves risk. The author assumes no liability for losses incurred by using this software.
