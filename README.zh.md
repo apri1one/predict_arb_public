@@ -6,7 +6,7 @@
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-> **实盘系统，不是玩具。** 本仓库是一套自 2026 年 4 月起以真实资金运行、多台云服务器 7×24 部署的交易系统的公开快照。实盘换来的经验教训整理在下方 [实盘踩坑录](#实盘踩坑录) 章节。
+> **实盘系统，不是玩具。** 本仓库是一套自 2026 年 1 月起以真实资金运行、多台云服务器 7×24 部署的交易系统的公开快照。实盘换来的经验教训整理在下方 [实盘踩坑录](#实盘踩坑录) 章节。
 >
 > English version: [README.md](README.md)
 

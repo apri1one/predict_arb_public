@@ -6,7 +6,7 @@ A real-money trading system for prediction markets, built and operated by a solo
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-> **Production, not a demo.** This is a public snapshot of a system that has been trading real capital since April 2026, running 24/7 across multiple cloud servers. The hard-won operational knowledge is documented in [Lessons from Production](#lessons-from-production) below.
+> **Production, not a demo.** This is a public snapshot of a system that has been trading real capital since January 2026, running 24/7 across multiple cloud servers. The hard-won operational knowledge is documented in [Lessons from Production](#lessons-from-production) below.
 >
 > 中文版说明见 [README.zh.md](README.zh.md)
 
